@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import PostCard from '../components/PostCard.astro';
+import { loadPosts, toCard } from '../lib/posts.js';
+
+const cards = (await loadPosts()).map(toCard);
+---
+
+<Base>
+  {cards.length === 0 ? (
+    <p class="jr-empty">No entries yet.</p>
+  ) : (
+    <div class="jr-grid">
+      {cards.map((entry) => <PostCard entry={entry} />)}
+    </div>
+  )}
+</Base>
+
+<script>
+  import { MSG_PLAY } from '@briwa.dev/sandbox';
+  import { pushFigureTheme } from '@briwa.dev/sandbox/client';
+
+  for (const frame of document.querySelectorAll<HTMLIFrameElement>('.jr-cover-frame')) {
+    pushFigureTheme(frame.contentWindow);
+    frame.addEventListener('load', () => pushFigureTheme(frame.contentWindow));
+  }
+
+  const play = (el: Element, on: boolean) =>
+    el.querySelector('iframe')?.contentWindow?.postMessage({ [MSG_PLAY]: on }, '*');
+
+  for (const cover of document.querySelectorAll('.jr-card-cover')) {
+    let timer: ReturnType<typeof setTimeout>;
+    cover.addEventListener('mouseenter', () => {
+      timer = setTimeout(() => play(cover, true), 500);
+    });
+    cover.addEventListener('mouseleave', () => {
+      clearTimeout(timer);
+      play(cover, false);
+    });
+  }
+</script>

@@ -1,0 +1,16 @@
+---
+import EntryView from '../../../components/EntryView.astro';
+import { loadPosts, postSlug } from '../../../lib/posts.js';
+
+export async function getStaticPaths() {
+  const posts = await loadPosts();
+  return posts.map((post, i) => ({
+    params: { slug: postSlug(post) },
+    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+---
+
+<EntryView post={post} newer={newer} older={older} />

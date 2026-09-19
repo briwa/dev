@@ -1,0 +1,10 @@
+# Security headers for every response. Served natively by Cloudflare's static assets, so the
+# site needs no Worker script at all — see wrangler.jsonc.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: same-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  # Figures are srcdoc iframes with no allow-same-origin, so they are unaffected by these.
+  # Non-document responses simply ignore a CSP, which is why one blanket rule is fine here.
+  Content-Security-Policy: object-src 'none'; base-uri 'self'; form-action 'self'

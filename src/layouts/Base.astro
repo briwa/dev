@@ -1,0 +1,20 @@
+---
+import Layout from './Layout.astro';
+import { SITE_NAME } from '../config.js';
+
+const { title } = Astro.props;
+---
+
+<Layout title={title}>
+  <div class="wrap">
+    <header class="site-head">
+      <a class="brand" href="/">{SITE_NAME}</a>
+      <nav>
+        <a href="/about">About</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </div>
+</Layout>
