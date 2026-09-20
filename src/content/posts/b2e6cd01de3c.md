@@ -31,35 +31,20 @@ if (!hasCard(shuffledCards, randomCardIdx)) {
 
 The code, visualized:
 
-```sandbox=js viz=canvas code
-class InefficientlyShuffleCards extends Canvas.Step {
+```sandbox=js viz code
+class InefficientlyShuffleCards extends BaseShuffleCards {
   enter() {
-    let startAt = 0;
     const seen = new Set();
     while (seen.size < this.entities.length) {
       const idx = Math.floor(Math.random() * this.entities.length);
       const entity = this.entities[idx];
 
-      this.tween(entity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: entity,
-        to: { color: TO_COLOR },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
-
-      this.tween(entity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: { color: TO_COLOR },
-        to: { color: entity.color },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
+      this.highlight(entity);
 
       if (!seen.has(idx)) {
         const newX = CENTER_X + seen.size * SPACING;
         this.tween(entity, {
-          startAt,
+          startAt: this.startAt,
           duration: SHUFFLE_STEP_DURATION,
           from: entity,
           to: {
@@ -69,13 +54,13 @@ class InefficientlyShuffleCards extends Canvas.Step {
             y1: entity.y1 + Y_SHIFT,
           },
         });
-        startAt += SHUFFLE_STEP_DURATION;
+        this.startAt += SHUFFLE_STEP_DURATION;
 
         seen.add(idx);
       }
     }
 
-    this.duration = startAt;
+    this.duration = this.startAt;
   }
 }
 
@@ -105,10 +90,9 @@ while (i) {
 ```
 
 
-```sandbox=js viz=canvas code
-class AlmostShuffleCards extends Canvas.Step {
+```sandbox=js viz code
+class AlmostShuffleCards extends BaseShuffleCards {
   enter() {
-    let startAt = 0;
     const list = [...BASE_CARDS];
     const at = this.entities.map(({ x0, x1, y0, y1 }) => ({ x0, x1, y0, y1 }));
 
@@ -117,26 +101,11 @@ class AlmostShuffleCards extends Canvas.Step {
       const cardIdx = list[pick];
       const entity = this.entities[cardIdx];
       const from = at[cardIdx];
-
-      this.tween(entity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: { color: DEFAULT_COLOR },
-        to: { color: TO_COLOR },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
-
-      this.tween(entity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: { color: TO_COLOR },
-        to: { color: DEFAULT_COLOR },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
+      this.highlight(entity);
 
       const newX = CENTER_X + (CARDS_COUNT - list.length) * SPACING;
       this.tween(entity, {
-        startAt,
+        startAt: this.startAt,
         duration: SHUFFLE_STEP_DURATION,
         from,
         to: {
@@ -161,7 +130,7 @@ class AlmostShuffleCards extends Canvas.Step {
         };
 
         this.tween(spliced, {
-          startAt,
+          startAt: this.startAt,
           duration: SHUFFLE_STEP_DURATION,
           from: splicedFrom,
           to,
@@ -170,10 +139,10 @@ class AlmostShuffleCards extends Canvas.Step {
         at[splicedIdx] = { ...splicedFrom, ...to };
       });
 
-      startAt += SHUFFLE_STEP_DURATION;
+      this.startAt += SHUFFLE_STEP_DURATION;
     }
 
-    this.duration = startAt;
+    this.duration = this.startAt;
   }
 }
 
@@ -193,11 +162,10 @@ render(entities);
 This felt as good as it could get: no re-picking shuffled cards and the shuffle completed in linear time. As it turns out, though, according to the article, there's an even more efficient approach: the Fisher-Yates shuffle. Instead of splicing, the chosen random card is swapped with the last unshuffled card in the deck. The pool of unshuffled cards would still "shrink" the same way, but no splicing involved. In short, an in-place shuffle.
 
 
-```sandbox=js viz=canvas code preview
-class ShuffleCards extends Canvas.Step {
+```sandbox=js viz code preview
+class ShuffleCards extends BaseShuffleCards {
   enter() {
     let idxCursor = this.entities.length;
-    let startAt = 0;
     const order = [...BASE_CARDS];
 
     while (idxCursor) {
@@ -206,33 +174,18 @@ class ShuffleCards extends Canvas.Step {
       const settledIdx = order[idxCursor];
       const pickedEntity = this.entities[pickedIdx];
       const settledEntity = this.entities[settledIdx];
-
-      this.tween(pickedEntity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: { color: DEFAULT_COLOR },
-        to: { color: TO_COLOR },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
-
-      this.tween(pickedEntity, {
-        startAt,
-        duration: SHUFFLE_STEP_DURATION,
-        from: { color: TO_COLOR },
-        to: { color: DEFAULT_COLOR },
-      });
-      startAt += SHUFFLE_STEP_DURATION;
+      this.highlight(pickedEntity);
 
       if (pickedSlot === idxCursor) continue;
 
       this.tween(pickedEntity, {
-        startAt,
+        startAt: this.startAt,
         duration: SHUFFLE_STEP_DURATION,
         from: this.cardXAt(pickedSlot, pickedIdx),
         to: this.cardXAt(idxCursor, pickedIdx),
       });
       this.tween(settledEntity, {
-        startAt,
+        startAt: this.startAt,
         duration: SHUFFLE_STEP_DURATION,
         from: this.cardXAt(idxCursor, settledIdx),
         to: this.cardXAt(pickedSlot, settledIdx),
@@ -241,10 +194,10 @@ class ShuffleCards extends Canvas.Step {
       order[pickedSlot] = settledIdx;
       order[idxCursor] = pickedIdx;
 
-      startAt += SHUFFLE_STEP_DURATION;
+      this.startAt += SHUFFLE_STEP_DURATION;
     }
 
-    this.duration = startAt;
+    this.duration = this.startAt;
   }
 
   cardXAt(slot, cardIdx) {
@@ -272,7 +225,7 @@ Though, despite how much the article blew me away, I never got around to actuall
 
 ---
 
-```sandbox=js label="setup code"
+```sandbox=js label="shared helper"
 const CARDS_COUNT = 60;
 const CARD_HEIGHT = 50;
 const CARD_WIDTH = 2;
@@ -329,6 +282,29 @@ class MoveAllCards extends Canvas.Step {
     }
   }
 }
+
+class BaseShuffleCards extends Canvas.Step {
+  startAt = 0;
+
+  highlight(entity) {
+    this.tween(entity, {
+      startAt: this.startAt,
+      duration: SHUFFLE_STEP_DURATION,
+      from: entity,
+      to: { color: TO_COLOR },
+    });
+    this.startAt += SHUFFLE_STEP_DURATION;
+
+    this.tween(entity, {
+      startAt: this.startAt,
+      duration: SHUFFLE_STEP_DURATION,
+      from: { color: TO_COLOR },
+      to: { color: entity.color },
+    });
+    this.startAt += SHUFFLE_STEP_DURATION;
+  }
+}
+
 
 function render(entitites) {
   const renderer = new Canvas.Renderer(canvas, entities);
