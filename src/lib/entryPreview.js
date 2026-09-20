@@ -37,20 +37,20 @@ function toText(md) {
 
 function pickCover(body) {
   const blocks = findSandboxBlocks(body);
-  const figures = blocks.filter((b) => b.closed && !b.snippet && !b.external && !b.vueLib);
+  const figures = blocks.filter((b) => b.kind === 'figure' && b.closed);
   if (!figures.length) return null;
 
-  const figure = figures.find((f) => f.preview) ?? figures[0];
-  const externals = sandboxExternals(blocks, figure.id);
-  const srcdoc = figure.vue
+  const figure = figures.find((f) => f.meta === 'thumb') ?? figures[0];
+  const externals = sandboxExternals(blocks);
+  const srcdoc = figure.lang === 'vue'
     ? buildVueSrcdoc(figure, figure.code, {
         externals,
-        components: sandboxVueComponents(blocks, figure.id),
+        components: sandboxVueComponents(blocks),
       })
     : buildSrcdoc(
         { ...figure, hover: true },
         figure.code,
-        sandboxPrelude(blocks, figure.id),
+        sandboxPrelude(blocks),
         externals,
       );
 
