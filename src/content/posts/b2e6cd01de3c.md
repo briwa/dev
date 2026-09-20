@@ -1,5 +1,5 @@
 ---
-title: Shuffling from the past
+title: "#shuffle"
 date: 2026-07-18
 ---
 
@@ -32,29 +32,6 @@ if (!hasCard(shuffledCards, randomCardIdx)) {
 The code, visualized:
 
 ```js canvas code
-class MoveAllCards extends Canvas.Step {
-  constructor({ duration, offset }) {
-    super({ duration });
-    this.offset = offset;
-  }
-
-  enter() {
-    for (const entity of this.entities) {
-      this.tween(entity, {
-        startAt: 0,
-        duration: this.duration,
-        from: entity,
-        to: {
-          x0: entity.x0 + this.offset.x,
-          x1: entity.x1 + this.offset.x,
-          y0: entity.y0 + this.offset.y,
-          y1: entity.y1 + this.offset.y,
-        },
-      });
-    }
-  }
-}
-
 class InefficientlyShuffleCards extends Canvas.Step {
   enter() {
     let startAt = 0;
@@ -103,7 +80,6 @@ class InefficientlyShuffleCards extends Canvas.Step {
 }
 
 const entities = createCards();
-
 const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 200 }),
   new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
@@ -111,17 +87,7 @@ const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-const renderer = new Canvas.Renderer(canvas, entities);
-
-loop((t) => {
-  timeline.update(t);
-  renderer.update(t);
-
-  if (timeline.done) {
-    reset();
-    timeline.reset();
-  }
-});
+render(entities);
 
 ```
 
@@ -140,29 +106,6 @@ while (i) {
 
 
 ```js canvas code
-class MoveAllCards extends Canvas.Step {
-  constructor({ duration, offset }) {
-    super({ duration });
-    this.offset = offset;
-  }
-
-  enter() {
-    for (const entity of this.entities) {
-      this.tween(entity, {
-        startAt: 0,
-        duration: this.duration,
-        from: entity,
-        to: {
-          x0: entity.x0 + this.offset.x,
-          x1: entity.x1 + this.offset.x,
-          y0: entity.y0 + this.offset.y,
-          y1: entity.y1 + this.offset.y,
-        },
-      });
-    }
-  }
-}
-
 class AlmostShuffleCards extends Canvas.Step {
   enter() {
     let startAt = 0;
@@ -235,7 +178,6 @@ class AlmostShuffleCards extends Canvas.Step {
 }
 
 const entities = createCards();
-
 const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 200 }),
   new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
@@ -243,17 +185,7 @@ const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-const renderer = new Canvas.Renderer(canvas, entities);
-
-loop((t) => {
-  timeline.update(t);
-  renderer.update(t);
-
-  if (timeline.done) {
-    reset();
-    timeline.reset();
-  }
-});
+render(entities);
 
 ```
 
@@ -322,24 +254,14 @@ class ShuffleCards extends Canvas.Step {
 }
 
 const entities = createCards();
-
 const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 200 }),
   new ShuffleCards(),
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-const renderer = new Canvas.Renderer(canvas, entities);
+render(entities);
 
-loop((t) => {
-  timeline.update(t);
-  renderer.update(t);
-
-  if (timeline.done) {
-    reset();
-    timeline.reset();
-  }
-});
 ```
 
 
@@ -382,6 +304,43 @@ function createCards() {
       color: DEFAULT_COLOR,
       lineWidth: CARD_WIDTH,
     });
+  });
+}
+
+class MoveAllCards extends Canvas.Step {
+  constructor({ duration, offset }) {
+    super({ duration });
+    this.offset = offset;
+  }
+
+  enter() {
+    for (const entity of this.entities) {
+      this.tween(entity, {
+        startAt: 0,
+        duration: this.duration,
+        from: entity,
+        to: {
+          x0: entity.x0 + this.offset.x,
+          x1: entity.x1 + this.offset.x,
+          y0: entity.y0 + this.offset.y,
+          y1: entity.y1 + this.offset.y,
+        },
+      });
+    }
+  }
+}
+
+function render(entitites) {
+  const renderer = new Canvas.Renderer(canvas, entities);
+  
+  loop((t) => {
+    timeline.update(t);
+    renderer.update(t);
+  
+    if (timeline.done) {
+      reset();
+      timeline.reset();
+    }
   });
 }
 
