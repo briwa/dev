@@ -103,7 +103,7 @@ a {
 
 .jr-card-cover {
   display: block;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 2;
   border-radius: 9px;
   z-index: 2;
 
@@ -111,7 +111,7 @@ a {
 }
 
 .jr-card-excerpt {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 2;
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.62;
@@ -152,7 +152,6 @@ a {
   right: 0;
   width: 100%;
   height: auto;
-  aspect-ratio: var(--fig-ar, 16 / 9);
   transform: translateY(-50%);
   border: 0;
   display: block;
