@@ -72,7 +72,7 @@ const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-render(entities, timeline);
+render(timeline);
 
 ```
 
@@ -154,7 +154,7 @@ const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-render(entities, timeline);
+render(timeline);
 
 ```
 
@@ -213,7 +213,7 @@ const timeline = new Canvas.Timeline(entities, [
   new Canvas.Step({ duration: 1000 }),
 ]);
 
-render(entities, timeline);
+render(timeline);
 
 ```
 
@@ -306,8 +306,8 @@ class BaseShuffleCards extends Canvas.Step {
 }
 
 
-function render(entities, timeline) {
-  const renderer = new Canvas.Renderer(canvas, entities);
+function render(timeline) {
+  const renderer = new Canvas.Renderer(canvas, timeline.entities);
   
   loop((t) => {
     timeline.update(t);
