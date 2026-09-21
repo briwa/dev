@@ -21,5 +21,5 @@ export async function loadPosts() {
 export const toCard = (p) => ({
   title: p.data.title,
   href: postHref(p),
-  ...entryPreview(p.body || ''),
+  ...entryPreview(p.body || '', { thumbLabel: p.data['sandbox-thumb-label'] }),
 });

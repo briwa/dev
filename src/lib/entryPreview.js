@@ -1,5 +1,6 @@
 import {
   findSandboxBlocks,
+  describeSandboxBlock,
   buildSrcdoc,
   buildVueSrcdoc,
   sandboxPrelude,
@@ -35,12 +36,19 @@ function toText(md) {
     .trim();
 }
 
-function pickCover(body) {
+function pickCover(body, thumbLabel) {
   const blocks = findSandboxBlocks(body);
   const figures = blocks.filter((b) => b.kind === 'figure' && b.closed);
   if (!figures.length) return null;
 
-  const figure = figures.find((f) => f.meta === 'thumb') ?? figures[0];
+  const named = thumbLabel
+    ? figures.find((f) => describeSandboxBlock(f).label === thumbLabel)
+    : null;
+  if (thumbLabel && !named) {
+    console.warn(`[entryPreview] no sandbox figure labelled "${thumbLabel}"; falling back to the first one`);
+  }
+
+  const figure = named ?? figures[0];
   const externals = sandboxExternals(blocks);
   const srcdoc = figure.lang === 'vue'
     ? buildVueSrcdoc(figure, figure.code, {
@@ -57,9 +65,9 @@ function pickCover(body) {
   return { srcdoc, w: figure.w, h: figure.h };
 }
 
-export function entryPreview(body = '') {
+export function entryPreview(body = '', { thumbLabel = '' } = {}) {
   let excerpt = toText(leadProse(body || ''));
   if (excerpt.length > 220) excerpt = excerpt.slice(0, 220).replace(/\s+\S*$/, '') + '…';
 
-  return { excerpt, cover: pickCover(body || '') };
+  return { excerpt, cover: pickCover(body || '', thumbLabel) };
 }

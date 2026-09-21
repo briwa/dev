@@ -1,6 +1,7 @@
 ---
 title: "#shuffle"
 date: 2026-07-18
+sandbox-thumb-label: ShuffleCards
 ---
 
 Back in 2012 or so, I had an idea for a turn-based card game, but I got stuck trying to figure out how to shuffle the cards in JavaScript. After googling around, I stumbled upon [this article from Mike Bostock](https://web.archive.org/web/20190603060230/https://bost.ocks.org/mike/shuffle/). I didn't know explaining how shuffling works could be so entertaining. The article became one of my biggest inspirations in programming, and it was probably how I got into data visualization in the first place.
@@ -162,7 +163,7 @@ render(timeline);
 This felt as good as it could get: no re-picking shuffled cards and the shuffle completed in linear time. As it turns out, though, according to the article, there's an even more efficient approach: the Fisher-Yates shuffle. Instead of splicing, the chosen random card is swapped with the last unshuffled card in the deck. The pool of unshuffled cards would still "shrink" the same way, but no splicing involved. In short, an in-place shuffle.
 
 
-```sandbox=js viz code meta=thumb
+```sandbox=js viz code
 class ShuffleCards extends BaseShuffleCards {
   enter() {
     let idxCursor = this.entities.length;
