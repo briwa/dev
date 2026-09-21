@@ -306,7 +306,7 @@ class BaseShuffleCards extends Canvas.Step {
 }
 
 
-function render(entitites) {
+function render(entities) {
   const renderer = new Canvas.Renderer(canvas, entities);
   
   loop((t) => {
