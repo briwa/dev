@@ -323,6 +323,6 @@ function render(timeline) {
 
 ```
 
-```sandbox=external label="canvas helper"
+```sandbox=external
 https://cdn.jsdelivr.net/npm/@briwa.dev/canvas@0.2.0/dist/index.iife.js
 ```
