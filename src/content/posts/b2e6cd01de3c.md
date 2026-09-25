@@ -1,5 +1,5 @@
 ---
-title: "#shuffle"
+title: "shuffle"
 date: 2026-07-18
 sandbox-thumb-label: ShuffleCards
 ---
@@ -66,12 +66,15 @@ class InefficientlyShuffleCards extends BaseShuffleCards {
 }
 
 const entities = createCards();
-const timeline = new Canvas.Timeline(entities, [
-  new Canvas.Step({ duration: 200 }),
-  new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
-  new InefficientlyShuffleCards(),
-  new Canvas.Step({ duration: 1000 }),
-]);
+const timeline = new Canvas.Timeline({
+  entities,
+  steps: [
+    new Canvas.DurationStep({ duration: 200 }),
+    new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
+    new InefficientlyShuffleCards(),
+    new Canvas.DurationStep({ duration: 1000 }),
+  ],
+});
 
 render(timeline);
 
@@ -148,12 +151,15 @@ class AlmostShuffleCards extends BaseShuffleCards {
 }
 
 const entities = createCards();
-const timeline = new Canvas.Timeline(entities, [
-  new Canvas.Step({ duration: 200 }),
-  new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
-  new AlmostShuffleCards(),
-  new Canvas.Step({ duration: 1000 }),
-]);
+const timeline = new Canvas.Timeline({
+  entities,
+  steps: [
+    new Canvas.DurationStep({ duration: 200 }),
+    new MoveAllCards({ duration: 500, offset: { x: 0, y: -Y_SHIFT } }),
+    new AlmostShuffleCards(),
+    new Canvas.DurationStep({ duration: 1000 }),
+  ],
+});
 
 render(timeline);
 
@@ -208,11 +214,14 @@ class ShuffleCards extends BaseShuffleCards {
 }
 
 const entities = createCards();
-const timeline = new Canvas.Timeline(entities, [
-  new Canvas.Step({ duration: 200 }),
-  new ShuffleCards(),
-  new Canvas.Step({ duration: 1000 }),
-]);
+const timeline = new Canvas.Timeline({
+  entities,
+  steps: [
+    new Canvas.DurationStep({ duration: 200 }),
+    new ShuffleCards(),
+    new Canvas.DurationStep({ duration: 1000 }),
+  ],
+});
 
 render(timeline);
 
@@ -250,7 +259,7 @@ function createCards() {
     const x0 = CENTER_X + idx * SPACING;
     const y0 = CENTER_Y + CARD_HEIGHT - height;
 
-    return new Canvas.Line({
+    return Canvas.line({
       x0,
       x1: x0 - xOffset,
       y0,
@@ -261,7 +270,7 @@ function createCards() {
   });
 }
 
-class MoveAllCards extends Canvas.Step {
+class MoveAllCards extends Canvas.TweenerStep {
   constructor({ duration, offset }) {
     super({ duration });
     this.offset = offset;
@@ -284,7 +293,7 @@ class MoveAllCards extends Canvas.Step {
   }
 }
 
-class BaseShuffleCards extends Canvas.Step {
+class BaseShuffleCards extends Canvas.TweenerStep {
   startAt = 0;
 
   highlight(entity) {
@@ -308,21 +317,17 @@ class BaseShuffleCards extends Canvas.Step {
 
 
 function render(timeline) {
-  const renderer = new Canvas.Renderer(canvas, timeline.entities);
-  
+  const scene = new Canvas.Scene({ canvas, timelines: [timeline] });
+
   loop((t) => {
-    timeline.update(t);
-    renderer.update(t);
-  
-    if (timeline.done) {
-      reset();
-      timeline.reset();
-    }
+    scene.render(t);
+
+    if (timeline.finished) reset();
   });
 }
 
 ```
 
 ```sandbox=external
-https://cdn.jsdelivr.net/npm/@briwa.dev/canvas@0.2.0/dist/index.iife.js
+https://cdn.jsdelivr.net/npm/@briwa.dev/canvas@0.4.0/dist/index.iife.js
 ```
