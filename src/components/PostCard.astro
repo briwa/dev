@@ -6,14 +6,13 @@ const { cover, href } = entry;
 <div class="jr-card">
   <a class="jr-card-link" href={href} aria-label={entry.title}></a>
   {cover ? (
-    <a class="jr-cover jr-card-cover" href={href} tabindex="-1" aria-hidden="true">
+    <a class="jr-cover jr-card-cover" href={href} tabindex="-1" aria-hidden="true" style={`--fig-ar: ${cover.w} / ${cover.h}`}>
       <iframe
         class="jr-cover-frame"
         sandbox="allow-scripts"
         srcdoc={cover.srcdoc}
         title="figure preview"
         tabindex="-1"
-        style={`--fig-ar: ${cover.w} / ${cover.h}`}
       ></iframe>
     </a>
   ) : (
