@@ -32,7 +32,7 @@ if (!hasCard(shuffledCards, randomCardIdx)) {
 
 The code, visualized:
 
-```sandbox=js viz code
+```sandbox=js viz 480x480 code
 class InefficientlyShuffleCards extends BaseShuffleCards {
   enter() {
     const seen = new Set();
@@ -94,7 +94,7 @@ while (i) {
 ```
 
 
-```sandbox=js viz code
+```sandbox=js viz 480x480 code
 class AlmostShuffleCards extends BaseShuffleCards {
   enter() {
     const list = [...BASE_CARDS];
@@ -169,7 +169,7 @@ render(timeline);
 This felt as good as it could get: no re-picking shuffled cards and the shuffle completed in linear time. As it turns out, though, according to the article, there's an even more efficient approach: the Fisher-Yates shuffle. Instead of splicing, the chosen random card is swapped with the last unshuffled card in the deck. The pool of unshuffled cards would still "shrink" the same way, but no splicing involved. In short, an in-place shuffle.
 
 
-```sandbox=js viz code
+```sandbox=js viz 480x480 code
 class ShuffleCards extends BaseShuffleCards {
   enter() {
     let idxCursor = this.entities.length;
