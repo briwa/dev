@@ -1,21 +1,15 @@
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
-import sandbox, { remarkSandbox, remarkStripHtml, shikiHighlight } from '@briwa.dev/sandbox/astro';
-import { remarkExternalLinks } from './src/lib/remarkExternalLinks.js';
+import sandbox from '@briwa.dev/sandbox/astro';
 
 const CODE_THEME = 'one-dark-pro';
 
+// The integration installs the whole markdown pipeline — figures, raw-HTML stripping,
+// link checking — on a unified processor, so a post renders here the way it does in the
+// editor's preview. Styles stay off because global.css imports figure.css itself.
 export default defineConfig({
-  integrations: [sandbox({ remark: false, styles: false })],
+  integrations: [sandbox({ styles: false, shiki: { theme: CODE_THEME } })],
   markdown: {
     syntaxHighlight: 'shiki',
     shikiConfig: { theme: CODE_THEME },
-    processor: unified({
-      remarkPlugins: [
-        remarkStripHtml,
-        [remarkSandbox, { highlight: shikiHighlight({ theme: CODE_THEME }) }],
-        remarkExternalLinks,
-      ],
-    }),
   },
 });
