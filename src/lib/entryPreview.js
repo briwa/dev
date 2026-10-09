@@ -2,10 +2,8 @@ import {
   findSandboxBlocks,
   describeSandboxBlock,
   buildSrcdoc,
-  buildVueSrcdoc,
   sandboxPrelude,
   sandboxExternals,
-  sandboxVueComponents,
 } from '@briwa.dev/sandbox';
 
 const NON_PROSE = /^(#{1,6}\s|!\[|>|`{3,}|~{3,})/;
@@ -49,18 +47,12 @@ function pickCover(body, thumbLabel) {
   }
 
   const figure = named ?? figures[0];
-  const externals = sandboxExternals(blocks);
-  const srcdoc = figure.lang === 'vue'
-    ? buildVueSrcdoc(figure, figure.code, {
-        externals,
-        components: sandboxVueComponents(blocks),
-      })
-    : buildSrcdoc(
-        { ...figure, hover: true },
-        figure.code,
-        sandboxPrelude(blocks),
-        externals,
-      );
+  const srcdoc = buildSrcdoc(
+    { ...figure, hover: true },
+    figure.code,
+    sandboxPrelude(blocks),
+    sandboxExternals(blocks),
+  );
 
   return { srcdoc, w: figure.w, h: figure.h };
 }
