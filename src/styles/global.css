@@ -31,7 +31,7 @@ a {
   &:hover { text-decoration: none; }
 }
 
-.astro-code { background-color: var(--code-bg) !important; }
+.shiki, .astro-code { background-color: var(--code-bg) !important; }
 
 .site-head {
   display: flex;
