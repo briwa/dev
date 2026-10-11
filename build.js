@@ -13,6 +13,23 @@ const sandboxRoot = dirname(createRequire(import.meta.url).resolve('@briwa.dev/s
 const slugify = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
 
+// A post lives at /posts/<id>/, the first 6 characters of its gist id, which never
+// change. The title slug after it is decoration: public/_redirects serves the post for
+// any /posts/<id>/<whatever>/, and the page swaps the address bar to the current slug.
+const ID_LEN = 6;
+
+function withHrefs(posts) {
+  const seen = new Map();
+  return posts.map((p) => {
+    const short = p.id.slice(0, ID_LEN);
+    const where = `${p.id}/${p.filename}`;
+    if (seen.has(short)) throw new Error(`${where} and ${seen.get(short)} share the id prefix ${short}`);
+    seen.set(short, where);
+    const slug = slugify(p.title);
+    return { ...p, dir: `/posts/${short}/`, href: `/posts/${short}/${slug ? `${slug}/` : ''}` };
+  });
+}
+
 async function emit(path, content) {
   const file = join(OUT, path);
   await mkdir(dirname(file), { recursive: true });
@@ -28,10 +45,7 @@ async function stylesheet() {
 }
 
 export async function build() {
-  const posts = (await loadPosts()).map((p) => ({
-    ...p,
-    href: `/posts/${[slugify(p.title), p.id.slice(0, 12)].filter(Boolean).join('-')}/`,
-  }));
+  const posts = withHrefs(await loadPosts());
 
   await rm(OUT, { recursive: true, force: true });
   await cp('public', OUT, { recursive: true });
@@ -50,8 +64,8 @@ export async function build() {
   for (const [i, post] of posts.entries()) {
     const html = await renderMarkdown(post.body);
     await emit(
-      join(post.href, 'index.html'),
-      postPage({ title: post.title, html, newer: posts[i - 1], older: posts[i + 1] })
+      join(post.dir, 'index.html'),
+      postPage({ title: post.title, href: post.href, html, newer: posts[i - 1], older: posts[i + 1] })
     );
   }
 

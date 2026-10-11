@@ -21,6 +21,13 @@ function siteBuild() {
           .catch((err) => server.config.logger.error(err.stack));
       };
       for (const event of ['add', 'change', 'unlink']) server.watcher.on(event, onChange);
+
+      // Mirrors public/_redirects, which only Cloudflare reads.
+      server.middlewares.use((req, _res, next) => {
+        const m = /^\/posts\/([^/]+)\/[^?#]+/.exec(req.url);
+        if (m) req.url = `/posts/${m[1]}/`;
+        next();
+      });
     },
   };
 }

@@ -11,7 +11,7 @@ const IMPORT_MAP = JSON.stringify({
   },
 });
 
-function layout({ title, body, script = '' }) {
+function layout({ title, body, script = '', head = '' }) {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -22,7 +22,7 @@ function layout({ title, body, script = '' }) {
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/styles.css" />
     <script type="importmap">${IMPORT_MAP}</script>
-  </head>
+${head}  </head>
   <body>
     <div class="wrap">
       <header class="site-head">
@@ -84,9 +84,13 @@ export function indexPage(cards) {
   return layout({ body, script: cards.length ? INDEX_SCRIPT : '' });
 }
 
-const POST_SCRIPT = `
+// The post is served for any slug after its id, so the address bar is put right here.
+const postScript = (href) => `
 import { mountFigures } from '@briwa.dev/sandbox/client';
 mountFigures();
+
+const canonical = ${JSON.stringify(href)};
+if (location.pathname !== canonical) history.replaceState(null, '', canonical + location.search + location.hash);
 `;
 
 const navLink = (post, dir) =>
@@ -94,7 +98,7 @@ const navLink = (post, dir) =>
     ? `<a class="entry-nav-link prev" href="${post.href}"><span class="nav-arrow">←</span><span class="nav-t">${escapeHtml(post.title)}</span></a>`
     : `<a class="entry-nav-link next" href="${post.href}"><span class="nav-t">${escapeHtml(post.title)}</span><span class="nav-arrow">→</span></a>`;
 
-export function postPage({ title, html, newer, older }) {
+export function postPage({ title, href, html, newer, older }) {
   const nav =
     newer || older
       ? `<nav class="entry-nav">
@@ -108,7 +112,8 @@ export function postPage({ title, html, newer, older }) {
 </article>
 ${nav}
 <a class="back" href="/">← Home</a>`;
-  return layout({ title, body, script: POST_SCRIPT });
+  const head = `    <link rel="canonical" href="https://${SITE_NAME}${href}" />\n`;
+  return layout({ title, body, head, script: postScript(href) });
 }
 
 const ext = (href, label) => `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;

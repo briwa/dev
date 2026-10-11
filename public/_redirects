@@ -1,0 +1,3 @@
+# A post's page is /posts/<id>/; the title slug after the id is cosmetic, so any slug —
+# including one from before a retitle — serves the same page. See build.js.
+/posts/:id/* /posts/:id/ 200
