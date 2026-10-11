@@ -11,8 +11,16 @@ const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 // Downloaded posts land here as gists/<gist id>/<filename>.md; the folder is gitignored.
 export const GISTS_DIR = 'gists';
 
+// Public gists need no auth, but unauthenticated API calls are capped at 60 an hour per
+// IP, and CI build machines share IPs, so CI sets GITHUB_TOKEN (a fine-grained PAT with
+// no permissions) to get its own limit. Locally it can stay unset.
+const headers = {
+  Accept: 'application/vnd.github+json',
+  ...(process.env.GITHUB_TOKEN && { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }),
+};
+
 async function get(url, as = 'json') {
-  const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+  const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`GET ${url} → ${res.status} ${res.statusText}`);
   return res[as]();
 }
