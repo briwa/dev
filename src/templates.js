@@ -28,7 +28,7 @@ function layout({ title, body, script = '' }) {
       <header class="site-head">
         <a class="brand" href="/">${SITE_NAME}</a>
         <nav>
-          <a href="/about">About</a>
+          <a href="/about/">About</a>
         </nav>
       </header>
       <main>
