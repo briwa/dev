@@ -13,11 +13,11 @@ const FILENAME_DATE = /^(\d{4}-\d{2}-\d{2})-/;
 export const GISTS_DIR = 'gists';
 
 // Public gists need no auth, but unauthenticated API calls are capped at 60 an hour per
-// IP, and CI build machines share IPs, so CI sets GITHUB_TOKEN (a fine-grained PAT with
+// IP, and CI build machines share IPs, so CI sets GITHUB_PAT (a fine-grained PAT with
 // no permissions) to get its own limit. Locally it can stay unset.
 const headers = {
   Accept: 'application/vnd.github+json',
-  ...(process.env.GITHUB_TOKEN && { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }),
+  ...(process.env.GITHUB_PAT && { Authorization: `Bearer ${process.env.GITHUB_PAT}` }),
 };
 
 async function get(url, as = 'json') {
