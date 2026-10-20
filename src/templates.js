@@ -40,46 +40,65 @@ ${script ? `    <script type="module">${script}</script>\n` : ''}  </body>
 `;
 }
 
-function postCard({ title, href, excerpt, cover }) {
-  const face = cover
-    ? `<a class="jr-cover jr-card-cover" href="${href}" tabindex="-1" aria-hidden="true" style="--fig-ar: ${cover.w} / ${cover.h}">
-        <iframe class="jr-cover-frame" sandbox="allow-scripts" srcdoc="${escapeAttr(cover.srcdoc)}" title="figure preview" tabindex="-1"></iframe>
-      </a>`
-    : `<p class="jr-card-excerpt">${escapeHtml(excerpt)}</p>`;
-  return `<div class="jr-card">
-      <a class="jr-card-link" href="${href}" aria-label="${escapeAttr(title)}"></a>
+// A card as vist's /u/ draws one: title and date, then the thumb (@briwa.dev/sandbox/post's)
+// or else the excerpt. A thumb fits THUMB_MAX square, its ratio kept, at most the card's
+// width and centred; a figure's frame scales what it draws, and plays while the card is hovered.
+const THUMB_MAX = 320;
+const fitWidth = (w, h) => Math.round(w * Math.min(1, THUMB_MAX / w, THUMB_MAX / h));
+
+function thumbFace(thumb) {
+  if (thumb.kind === 'image') {
+    const box = thumb.size
+      ? `width: ${fitWidth(...thumb.size)}px; aspect-ratio: ${thumb.size[0]} / ${thumb.size[1]}`
+      : `max-width: min(100%, ${THUMB_MAX}px); max-height: ${THUMB_MAX}px`;
+    return `<img class="jr-thumb" src="${escapeAttr(thumb.src)}" alt="" loading="lazy" style="${box}" />`;
+  }
+  return `<iframe class="jr-thumb jr-thumb-frame" sandbox="allow-scripts" srcdoc="${escapeAttr(thumb.srcdoc)}" title="figure preview" tabindex="-1" aria-hidden="true" loading="lazy" style="width: ${fitWidth(thumb.w, thumb.h)}px; aspect-ratio: ${thumb.w} / ${thumb.h}"></iframe>`;
+}
+
+// `2026-07-18` as vist shows it: `Jul 18, 2026`. The date is midnight UTC; read it there.
+const formatDate = (date) =>
+  date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+function postCard({ title, href, date, excerpt, thumb }) {
+  const face = thumb
+    ? thumbFace(thumb)
+    : excerpt
+      ? `<p class="jr-card-excerpt">${escapeHtml(excerpt)}</p>`
+      : '';
+  return `<a class="jr-card" href="${href}">
+      <div class="jr-card-head">
+        <h2 class="jr-card-title">${escapeHtml(title)}</h2>
+        <time class="jr-card-date" datetime="${date.toISOString().slice(0, 10)}">${formatDate(date)}</time>
+      </div>
       ${face}
-      <span class="jr-card-title">${escapeHtml(title)}</span>
-    </div>`;
+    </a>`;
 }
 
 const INDEX_SCRIPT = `
-import { MSG_PLAY } from '@briwa.dev/sandbox';
-import { pushFigureTheme } from '@briwa.dev/sandbox/client';
+import { enterFigure, leaveFigure, pushFigureTheme } from '@briwa.dev/sandbox/client';
 
-for (const frame of document.querySelectorAll('.jr-cover-frame')) {
-  pushFigureTheme(frame.contentWindow);
+for (const frame of document.querySelectorAll('.jr-thumb-frame')) {
   frame.addEventListener('load', () => pushFigureTheme(frame.contentWindow));
 }
 
-const play = (el, on) =>
-  el.querySelector('iframe')?.contentWindow?.postMessage({ [MSG_PLAY]: on }, '*');
-
-for (const cover of document.querySelectorAll('.jr-card-cover')) {
+for (const card of document.querySelectorAll('.jr-card')) {
+  const frame = card.querySelector('.jr-thumb-frame');
+  if (!frame) continue;
   let timer;
-  cover.addEventListener('mouseenter', () => {
-    timer = setTimeout(() => play(cover, true), 500);
+  card.addEventListener('mouseenter', () => {
+    timer = setTimeout(() => enterFigure(frame), 500);
   });
-  cover.addEventListener('mouseleave', () => {
+  card.addEventListener('mouseleave', () => {
     clearTimeout(timer);
-    play(cover, false);
+    leaveFigure(frame);
   });
 }
 `;
 
 export function indexPage(cards) {
   const body = cards.length
-    ? `<div class="jr-grid">\n${cards.map(postCard).join('\n')}\n</div>`
+    ? `<div class="jr-list">\n${cards.map(postCard).join('\n')}\n</div>`
     : `<p class="jr-empty">No entries yet.</p>`;
   return layout({ body, script: cards.length ? INDEX_SCRIPT : '' });
 }

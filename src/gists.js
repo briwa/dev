@@ -2,11 +2,12 @@ import { mkdir, rm, writeFile, readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse as parseYaml } from 'yaml';
+import { readKey, splitFrontmatter } from '@briwa.dev/sandbox/post';
 
 const API = 'https://api.github.com';
-const USER = 'briwa';
-const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
+export const USER = 'briwa';
+// A post's date is the YYYY-MM-DD its filename starts with, e.g. 2026-07-18-shuffle.md.
+const FILENAME_DATE = /^(\d{4}-\d{2}-\d{2})-/;
 
 // Downloaded posts land here as gists/<gist id>/<filename>.md; the folder is gitignored.
 export const GISTS_DIR = 'gists';
@@ -34,11 +35,7 @@ async function listGists() {
   }
 }
 
-function splitFrontmatter(src) {
-  const m = FRONTMATTER.exec(src);
-  if (!m) return { data: {}, body: src };
-  return { data: parseYaml(m[1]) ?? {}, body: src.slice(m[0].length) };
-}
+const isSandbox = (src) => readKey(splitFrontmatter(src).frontmatter, 'sandbox') === 'true';
 
 // Every public .md file in my gists whose frontmatter opts in with `sandbox: true`. The
 // folder is replaced wholesale, so a gist that was deleted or opted out disappears too.
@@ -53,7 +50,7 @@ export async function downloadGists() {
   const fetched = await Promise.all(
     files.map(async ({ id, file }) => ({ id, filename: file.filename, src: await get(file.raw_url, 'text') }))
   );
-  const posts = fetched.filter(({ src }) => splitFrontmatter(src).data.sandbox === true);
+  const posts = fetched.filter(({ src }) => isSandbox(src));
 
   await rm(GISTS_DIR, { recursive: true, force: true });
   for (const { id, filename, src } of posts) {
@@ -75,19 +72,21 @@ export async function loadPosts() {
       .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.md'))
       .map(async (e) => {
         const id = e.parentPath.split(/[\\/]/).pop();
-        const { data, body } = splitFrontmatter(await readFile(join(e.parentPath, e.name), 'utf8'));
-        if (data.sandbox !== true || data.draft === true) return null;
-        if (!data.title || !data.date) {
-          console.warn(`[gists] ${id}/${e.name}: sandbox post without title/date, skipped`);
+        const text = await readFile(join(e.parentPath, e.name), 'utf8');
+        const { frontmatter } = splitFrontmatter(text);
+        if (!isSandbox(text) || readKey(frontmatter, 'draft') === 'true') return null;
+        const title = readKey(frontmatter, 'title');
+        const date = FILENAME_DATE.exec(e.name)?.[1];
+        if (!title || !date) {
+          console.warn(`[gists] ${id}/${e.name}: sandbox post without a title or a YYYY-MM-DD- filename, skipped`);
           return null;
         }
         return {
           id,
           filename: e.name,
-          title: String(data.title),
-          date: new Date(data.date),
-          thumbLabel: data['sandbox-thumb-label'] ?? '',
-          body,
+          title,
+          date: new Date(date),
+          text,
         };
       })
   );

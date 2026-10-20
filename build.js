@@ -2,9 +2,9 @@ import { mkdir, rm, writeFile, readFile, cp } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { loadPosts } from './src/gists.js';
+import { renderPost } from '@briwa.dev/sandbox/post';
+import { loadPosts, USER } from './src/gists.js';
 import { renderMarkdown } from './src/render.js';
-import { entryPreview } from './src/entryPreview.js';
 import { indexPage, postPage, aboutPage } from './src/templates.js';
 
 export const OUT = 'dist';
@@ -45,7 +45,12 @@ async function stylesheet() {
 }
 
 export async function build() {
-  const posts = withHrefs(await loadPosts());
+  const posts = await Promise.all(
+    withHrefs(await loadPosts()).map(async (p) => {
+      const { excerpt, thumb, html } = await renderPost(p.text, { render: renderMarkdown, file: p.filename, owner: USER, gistId: p.id });
+      return { ...p, excerpt, thumb, html };
+    })
+  );
 
   await rm(OUT, { recursive: true, force: true });
   await cp('public', OUT, { recursive: true });
@@ -57,15 +62,14 @@ export async function build() {
 
   await emit(
     'index.html',
-    indexPage(posts.map((p) => ({ title: p.title, href: p.href, ...entryPreview(p.body, { thumbLabel: p.thumbLabel }) })))
+    indexPage(posts)
   );
   await emit('about/index.html', aboutPage());
 
   for (const [i, post] of posts.entries()) {
-    const html = await renderMarkdown(post.body);
     await emit(
       join(post.dir, 'index.html'),
-      postPage({ title: post.title, href: post.href, html, newer: posts[i - 1], older: posts[i + 1] })
+      postPage({ title: post.title, href: post.href, html: post.html, newer: posts[i - 1], older: posts[i + 1] })
     );
   }
 

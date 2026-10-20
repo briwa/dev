@@ -11,13 +11,12 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@briwa.dev/sandbox": "^0.11.2",
+    "@briwa.dev/sandbox": "^0.11.3",
     "rehype-stringify": "^10.0.1",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
     "shiki": "^4.5.0",
-    "unified": "^11.0.5",
-    "yaml": "^2.9.1"
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "vite": "^8.3.4",
